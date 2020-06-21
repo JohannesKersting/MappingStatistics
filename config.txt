@@ -1,0 +1,5 @@
+bam_path: /nfs/scratch/AS_benchmarking/Task1/error_0/star-output/Star_mapped_subsample_01_Aligned.out.bam
+fastq_path: /nfs/scratch/AS_benchmarking/Task1/error_0/subsample_01_1.fastq
+gtf_path: /nfs/scratch/AS_benchmarking/Task1/error_0/splicing_variants.gtf
+genomic_reads: error_0_genomic_reads.RData
+output_folder: error_0_star_subsample_01
