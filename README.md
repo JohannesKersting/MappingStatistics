@@ -25,8 +25,11 @@ output_folder: The output directory name. (Directory has to be in the same folde
 Output:
 
 The output folder will contain 3 files:
+
 bam_reads.RData: The bam file reads in genomic ranges format
+
 full_info.csv: Mapping quality information for each individual read
+
 summary.csv: Summary of full_info.csv
 
 summary.csv contains the following measurments:
