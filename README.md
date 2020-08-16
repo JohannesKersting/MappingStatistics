@@ -22,7 +22,7 @@ If the file does exist, its data will be loaded, to skip the coordinate parsing 
 
 output_folder: The output directory name. (Directory has to be in the same folder as the scripts. If it doesn't exist, it will be created.)
 
-## Output:
+## Output
 
 The output folder will contain 3 files:
 
