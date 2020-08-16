@@ -72,7 +72,7 @@ The R-notebook plots_mapping.Rmd can be used to visualize the results.
 The scripts utlize the following R libraries:
 - Rsamtools
 - data.table
-- GenomicFeatures)
+- GenomicFeatures
 - tidyr
 - GenomicAlignments
 - pryr
