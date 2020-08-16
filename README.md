@@ -2,7 +2,7 @@
 The scripts take a gtf file, to parse the transcriptomic read coordinates of an AS-Simulator output to genomic coordinates.
 Then these refernce reads are compared to the mapping in a .bam file.
 
-Script usage with console:
+## Script usage with console:
 Rscript main_server.R
 
 All 4 files (main_server.R, config.txt, functions.R, read_fastw.awk) have to be in the same directory.
