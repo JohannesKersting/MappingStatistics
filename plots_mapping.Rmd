@@ -13,9 +13,9 @@ Set path variables...
 ```{r}
 setwd("C:/Users/kerst/Desktop/MP/")
 directory <- "results"
-mappers <- c("star","hisat","crac","contextmap2")
+mappers <- c("star","hisat","crac","contextmap2","BBmap","subjunc","dart","gsnap","mapsplice2","segemehl")
 error_rate <- 0
-samples <- c("subsample_01","subsample_02","subsample_03")
+samples <- c("subsample_01")
 filename <- "summary.csv"
 
 ```
@@ -41,24 +41,24 @@ precision <- function(tp,fp){
 }
 ```
 ```{r}
-summary <-summary[summary$sample=="subsample_01"]
+#summary <-summary[summary$sample=="subsample_01"]
 ```
 
 
 Plotting level: read pairs, range correct
 ```{r}
-ggplot(summary,aes(x=n_correct_range_pairs/n_proper_pairs,y=n_correct_range_pairs/n_pairs,color=mapper,shape=mapper))+
+ggplot(summary,aes(x=n_correct_range_pairs/n_proper_pairs,y=n_correct_range_pairs/n_pairs,color=mapper))+
   geom_point(size=3)+
-  labs(x="Correct pairs / mapped pairs",y="Correct pairs / all pairs",title=paste("Error rate:",error_rate,"Level: Read pairs with correct range"),color="Mapping tool",shape="Mapping tool")+
+  labs(x="Correct pairs / mapped pairs",y="Correct pairs / all pairs",title=paste("Error rate:",error_rate,"Level: Read pairs with correct range"),color="Mapping tool")+
   theme_bw()+
   theme(plot.title = element_text(size=13.5))
 ```
 
 Plotting level: read pairs with all junctions correct
 ```{r}
-ggplot(summary,aes(x=n_all_junctions_correct_pairs/n_proper_pairs,y=n_all_junctions_correct_pairs/n_pairs,color=mapper,shape=mapper))+
+ggplot(summary,aes(x=n_all_junctions_correct_pairs/n_proper_pairs,y=n_all_junctions_correct_pairs/n_pairs,color=mapper))+
   geom_point(size=3)+
-  labs(x="Correct pairs / mapped pairs",y="Correct pairs / all pairs",title=paste("Error rate:",error_rate,"Level: Read pairs with all junctions mapped correctly"),color="Mapping tool",shape="Mapping tool")+
+  labs(x="Correct pairs / mapped pairs",y="Correct pairs / all pairs",title=paste("Error rate:",error_rate,"Level: Read pairs with all junctions mapped correctly"),color="Mapping tool")+
   theme_bw()+
   theme(plot.title = element_text(size=13.5))
 ```
@@ -75,9 +75,9 @@ Plotting level: junctions with correct range
 ```{r}
 ggplot(summary,aes(x=precision(n_correct_junctions,n_false_junctions),
                    y=recall(n_correct_junctions,n_junctions-n_correct_junctions),
-                   color=mapper,shape=mapper))+
+                   color=mapper))+
   geom_point(size=3)+
-  labs(x="Precision",y="Recall",title=paste("Error rate:",error_rate,"Level: Junctions with correct range"),color="Mapping tool",shape="Mapping tool")+
+  labs(x="Precision",y="Recall",title=paste("Error rate:",error_rate,"Level: Junctions with correct range"),color="Mapping tool")+
   theme_bw()+
   theme(plot.title = element_text(size=13.5))
 ```

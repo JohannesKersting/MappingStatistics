@@ -117,7 +117,6 @@ readBamFile <- function(path){
                                             isUnmappedQuery = F,
                                             hasUnmappedMate = F,
                                             isSecondaryAlignment = F,
-                                            isDuplicate = F,
                                             isSupplementaryAlignment = F,
                                             isFirstMateRead = T
   ))
@@ -137,11 +136,10 @@ readBamFile <- function(path){
                                             isUnmappedQuery = F,
                                             hasUnmappedMate = F,
                                             isSecondaryAlignment = F,
-                                            isDuplicate = F,
                                             isSupplementaryAlignment = F,
                                             isSecondMateRead = T
   ))
-  mate_2 <- readGAlignments(bam_path, param=param, use.names = T)
+  mate_2 <- readGAlignments(bam_path,param=param, use.names = T)
   
   print("mem:")
   print(mem_used())
@@ -153,11 +151,14 @@ readBamFile <- function(path){
   old <- Sys.time()
   #get the ranges
   bam <- list(mate_1=mate_1,mate_2=mate_2)
-  
+
   bam_ranges_mate_1 <- granges(bam$mate_1)
   bam_ranges_mate_2 <- granges(bam$mate_2)
+  
+
   bam_ranges_mate_1$mate <- 1
   bam_ranges_mate_2$mate <- 2
+
   
   print("mem:")
   print(mem_used())
@@ -168,9 +169,10 @@ readBamFile <- function(path){
   print("parsing junctions from cigar...")
   old <- Sys.time()
   #get junctions from cigar
-  bam_ranges_mate_1$junctions <-  extractAlignmentRangesOnReference(cigar(bam$mate_1),pos=start(bam$mate_1))
-  bam_ranges_mate_2$junctions <-  extractAlignmentRangesOnReference(cigar(bam$mate_2),pos=start(bam$mate_2))
-  
+  #= and X need to be replaced
+  bam_ranges_mate_1$junctions <-  extractAlignmentRangesOnReference(cigar(bam$mate_1),pos=start(bam$mate_1),drop.D.ranges = T)
+  bam_ranges_mate_2$junctions <-  extractAlignmentRangesOnReference(cigar(bam$mate_2),pos=start(bam$mate_2),drop.D.ranges = T)
+  #print(table(cigar(bam$mate_1)))
   print("mem:")
   print(mem_used())
   print("time:")
@@ -185,6 +187,17 @@ readBamFile <- function(path){
   if(grepl("/", names(bam_ranges[1]), fixed = TRUE)){
     print("Parsing read names...")
     names(bam_ranges)<-unlist(strsplit(names(bam_ranges),"/",fixed=T))[ c(TRUE,FALSE) ]
+  }
+  if(grepl(" ",as.character(seqnames(bam_ranges[1])),fixed = TRUE)){
+    print("Parsing chromosome names...")
+    replace <- gsub("\\s.*","",as.character(seqnames(bam_ranges)))
+    bam_ranges <- GRanges(seqnames = Rle(replace),
+                          ranges = ranges(bam_ranges),
+                          names= names(bam_ranges),
+                          strand = strand(bam_ranges),
+                          junctions = bam_ranges$junctions,
+                          mate = bam_ranges$mate)
+                    
   }
   bam_ranges$id <- names(bam_ranges)
   names(bam_ranges) <- paste(names(bam_ranges),bam_ranges$mate,sep="_")
