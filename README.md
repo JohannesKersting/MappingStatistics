@@ -1,6 +1,6 @@
 # MappingStatistics
-These scripts take a gtf file, to parse the transcriptomic read coordinates of an AS-Simulator output to genomic coordinates.
-Then this refernce reads are compared to the mapping in a bam file.
+The scripts take a gtf file, to parse the transcriptomic read coordinates of an AS-Simulator output to genomic coordinates.
+Then these refernce reads are compared to the mapping in a .bam file.
 
 Script usage with console:
 Rscript main_server.R
@@ -31,6 +31,7 @@ bam_reads.RData: The bam file reads in genomic ranges format
 full_info.csv: Mapping quality information for each individual read
 
 summary.csv: Summary of full_info.csv
+
 
 summary.csv contains the following measurments:
 
