@@ -76,5 +76,6 @@ The scripts utlize the following R libraries:
 - tidyr
 - GenomicAlignments
 - pryr
+- ggplot2
 
 
