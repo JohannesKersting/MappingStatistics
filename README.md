@@ -2,7 +2,7 @@
 The scripts take a gtf file, to parse the transcriptomic read coordinates of an AS-Simulator output to genomic coordinates.
 Then these refernce reads are compared to the mapping in a .bam file.
 
-## Script usage with console:
+## Script usage with console
 Rscript main_server.R
 
 All 4 files (main_server.R, config.txt, functions.R, read_fastw.awk) have to be in the same directory.
@@ -22,7 +22,7 @@ If the file does exist, its data will be loaded, to skip the coordinate parsing 
 
 output_folder: The output directory name. (Directory has to be in the same folder as the scripts. If it doesn't exist, it will be created.)
 
-Output:
+## Output:
 
 The output folder will contain 3 files:
 
@@ -64,5 +64,8 @@ n_correct_chrom_pairs: The number of read pairs, mapped to the correct chromosom
 n_correct_range_pairs: The number of read pairs, where both read ranges are correct
 
 n_all_junctions_correct_pairs: The number of corretly mapped read pairs
+
+## Plotting
+The R-notebook plots_mapping.Rmd can be used to visualize the results.
 
 
