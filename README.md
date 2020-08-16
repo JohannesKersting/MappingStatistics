@@ -33,7 +33,7 @@ full_info.csv: Mapping quality information for each individual read
 summary.csv: Summary of full_info.csv
 
 
-summary.csv contains the following measurments:
+summary.csv contains the following measurements:
 
 n_reads: The number of reference reads
 
@@ -63,7 +63,7 @@ n_correct_chrom_pairs: The number of read pairs, mapped to the correct chromosom
 
 n_correct_range_pairs: The number of read pairs, where both read ranges are correct
 
-n_all_junctions_correct_pairs: The number of corretly mapped read pairs
+n_all_junctions_correct_pairs: The number of correctly mapped read pairs
 
 ## Plotting
 The R-notebook plots_mapping.Rmd can be used to visualize the results.
