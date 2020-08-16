@@ -69,7 +69,7 @@ n_all_junctions_correct_pairs: The number of corretly mapped read pairs
 The R-notebook plots_mapping.Rmd can be used to visualize the results.
 
 ## Required libraries
-The scripts utlize the following R libraries:
+The scripts utilize the following R libraries:
 - Rsamtools
 - data.table
 - GenomicFeatures
