@@ -5,7 +5,7 @@ Then these reference reads are compared to the mapping in a .bam file.
 ## Script usage with console
 Rscript main_server.R
 
-All 4 files (main_server.R, config.txt, functions.R, read_fastw.awk) have to be in the same directory.
+All 4 files (main_server.R, config.txt, functions.R, read_fastq.awk) have to be in the same directory.
 
 Input files and output locations get specified in config.txt.
 
