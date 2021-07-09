@@ -1,10 +1,9 @@
-library(Rsamtools)
+suppressMessages(library(Rsamtools))
 library(data.table)
-library(GenomicFeatures)
-library(GenomicRanges)
-library(tidyr)
-library(GenomicAlignments)
-library(pryr)
+suppressMessages(library(GenomicFeatures))
+suppressMessages(library(tidyr))
+suppressMessages(library(GenomicAlignments))
+suppressMessages(library(pryr))
 
 
 
@@ -12,8 +11,23 @@ library(pryr)
 source("functions.R")
 start_time <- Sys.time()
 
+args = commandArgs(trailingOnly=TRUE)
+bam_path <- ""
+fastq_path <- ""
+gtf_path <- ""
+genomic_reads_data <- ""
+output_folder <- ""
+
+save_all = F
+
+config = list()
+if(length(args)!=0){
+  config = readArgs(args)
+} else {
+  config <- readConfig("config.txt")
+}
+
 #get path variables from config file
-config <- readConfig("config.txt")
 bam_path <- config$bam_path
 fastq_path <- config$fastq_path
 gtf_path <- config$gtf_path
@@ -27,106 +41,7 @@ output_folder <- config$output_folder
 #genomic_reads_data <- "error_0_genomic_reads.RData"
 #output_folder <- "error_0_contextmap2_subsample_01"
 
-if(!file.exists(genomic_reads_data)){
-  #reading input files
-  print("Generating genomic_reads...")
-  reads <- fastqGRanges(fastq_path)
-  transcripts <- readTranscripts(gtf_path)
-  
-  
-  
-  #correct false ranges
-  print("Correcting ranges...")
-  old <- Sys.time()
-  
-  read_width <- width(reads[Position(function(x) x==FALSE, reads$range_needs_check)])
-  print(paste0("Read width: ",read_width))
-  
-  transcript_ids_for_range_parsing_1 <- as.character(seqnames(reads[reads$mate==1&reads$range_needs_check]))
-  transcript_ids_for_range_parsing_2 <- as.character(seqnames(reads[reads$mate==2&reads$range_needs_check]))
-  
-  transcipts_for_range_parsing_1 <- transcripts[transcript_ids_for_range_parsing_1]
-  transcipts_for_range_parsing_2 <- transcripts[transcript_ids_for_range_parsing_2]
-  
-  width_per_transcript_1 <- sum(width(transcipts_for_range_parsing_1))
-  width_per_transcript_2 <- sum(width(transcipts_for_range_parsing_2))
-  
-  corrected_ranges_1 <- IRanges(start=1,end=pmin(width_per_transcript_1,read_width))
-  corrected_ranges_2 <- IRanges(start=pmax(1,width_per_transcript_2-read_width+1),end=width_per_transcript_2)
-  
-  ranges(reads[reads$mate==1&reads$range_needs_check])<-corrected_ranges_1
-  ranges(reads[reads$mate==2&reads$range_needs_check])<-corrected_ranges_2
-  
-  print(paste0(sum(reads$range_needs_check)," ranges corrected."))
-  
-  print(Sys.time()-old)
-  
-  
-  
-  
-  #transform transcriptomic coordinates into genomic coordinates
-  print("Parsing read coordinates to genomic...")
-  old <- Sys.time()
-  
-  mapping <- mapFromTranscripts(reads,transcripts,ignore.strand=F)
-  
-  
-  print(paste0(length(mapping)," read coordinates parsed..."))
-  print("Unparsed reads:")
-  print(reads[-mapping$xHits])
-  print(Sys.time()-old)
-  print("mem:")
-  print(mem_used())
-  
-  
-  
-  #get junctions
-  print("Parsing junctions...")
-  old <- Sys.time()
-  
-  mapping_list <- split(mapping,1:length(mapping))
-  junctions <- intersect(mapping_list,transcripts[mapping$transcriptsHits],ignore.strand=T)
-  
-  print(Sys.time()-old)
-  print("mem:")
-  print(mem_used())
-  
-  #generate genomic reads
-  print("Generate genomic reads...")
-  old <- Sys.time()
-  
-  genomic_reads <- GRanges(seqnames = seqnames(mapping),
-                           ranges = ranges(mapping),
-                           strand = strand(mapping),
-                           mate = reads$mate
-  )
-  names(genomic_reads)<-paste(reads$read_id,reads$mate,sep="_")
-  genomic_reads$junctions <- ranges(junctions)
-  
-  print(Sys.time()-old)
-  print("mem:")
-  print(mem_used())
-  
-  #generate genomic reads
-  print(paste0("Saving genomic reads as ", genomic_reads_data))
-  old <- Sys.time()
-  
-  save(genomic_reads, file = genomic_reads_data)
-  
-  print(Sys.time()-old)
-  print("mem:")
-  print(mem_used())
-}else{
-  
-  print(paste0("Genomic reads are already computed. Loading data ",genomic_reads_data))
-  old <- Sys.time()
-  load(genomic_reads_data)
-  print(paste0(length(genomic_reads)," reads loaded!"))
-  print(Sys.time()-old)
-  print("mem:")
-  print(mem_used())
-  
-}
+genomic_reads <- loadReferenceReads(genomic_reads_data,fastq_path,gtf_path)
 
 print(paste0("Reading bam file ",bam_path))
 bam <- readBamFile(bam_path)
@@ -258,9 +173,11 @@ if (!file.exists(output_folder)){
   dir.create(file.path(getwd(),output_folder))
 }
 print(paste0("Saving results to: ",file.path(getwd(),output_folder)))
-save(bam, file = file.path(getwd(),output_folder,"bam_reads.RData"))
+if(save_all){
+  save(bam, file = file.path(getwd(),output_folder,"bam_reads.RData"))
+  fwrite(lookup, file.path(getwd(),output_folder,"full_info.csv"))
+}
 fwrite(counts, file.path(getwd(),output_folder,"summary.csv"))
-fwrite(lookup, file.path(getwd(),output_folder,"full_info.csv"))
 print(Sys.time()-old)
 
 

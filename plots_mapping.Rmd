@@ -8,14 +8,23 @@ Import libraries...
 library(ggplot2)
 library(data.table)
 library(viridis)
+library(RColorBrewer)
 ```
 Set path variables...
 ```{r}
+#folder where the results folder is in
 setwd("C:/Users/kerst/Desktop/MP/")
-directory <- "results"
-mappers <- c("star","hisat","crac","contextmap2","BBmap","subjunc","dart","gsnap","mapsplice2","segemehl")
-error_rate <- 0
-samples <- c("subsample_01")
+#resulst folder
+directory <- "results_new"
+#experiment type
+type <- "bio_sets_inspired_error_0.1"
+
+mappers <- c("star","hisat","crac","contextmap","bbmap","subjunc","gsnap","dart","mapsplice2","segemehl","minimap2")
+
+#error rate for plots
+error_rate <- 0.1
+
+samples <- c("01")
 filename <- "summary.csv"
 
 ```
@@ -23,13 +32,14 @@ Read the data..
 ```{r}
 summary_list <- lapply(mappers,function(mapper){
   rbindlist(lapply(samples,function(sample){
-    data <- fread(file.path(directory,paste("error",error_rate,mapper,sample,sep="_"),filename))
+    data <- fread(file.path(directory,type,paste(mapper,sample,sep = "_"),filename))
     data$mapper <- mapper
     data$sample <- sample
     return(data)
     }))
 })
 summary <- rbindlist(summary_list)
+summary$mapper <- as.factor(summary$mapper)
 ```
 Define functions...
 ```{r}
@@ -40,70 +50,53 @@ precision <- function(tp,fp){
   return(tp/(tp+fp))
 }
 ```
+Get palette:
 ```{r}
-#summary <-summary[summary$sample=="subsample_01"]
+qual_col_pals = brewer.pal.info[brewer.pal.info$category == 'qual',]
+col_vector = unlist(mapply(brewer.pal, qual_col_pals$maxcolors, rownames(qual_col_pals)))
+col_vector <- col_vector[-4]
 ```
 
 
 Plotting level: read pairs, range correct
 ```{r}
-ggplot(summary,aes(x=n_correct_range_pairs/n_proper_pairs,y=n_correct_range_pairs/n_pairs,color=mapper))+
+g <- ggplot(summary,aes(x=n_correct_range_pairs/n_proper_pairs,y=n_correct_range_pairs/n_pairs,color=mapper))+
   geom_point(size=3)+
   labs(x="Correct pairs / mapped pairs",y="Correct pairs / all pairs",title=paste("Error rate:",error_rate,"Level: Read pairs with correct range"),color="Mapping tool")+
   theme_bw()+
   theme(plot.title = element_text(size=13.5))
+g
 ```
 
 Plotting level: read pairs with all junctions correct
 ```{r}
-ggplot(summary,aes(x=n_all_junctions_correct_pairs/n_proper_pairs,y=n_all_junctions_correct_pairs/n_pairs,color=mapper))+
+g <- ggplot(summary,aes(x=n_all_junctions_correct_pairs/n_proper_pairs,y=n_all_junctions_correct_pairs/n_pairs,color=mapper,shape=mapper))+
   geom_point(size=3)+
-  labs(x="Correct pairs / mapped pairs",y="Correct pairs / all pairs",title=paste("Error rate:",error_rate,"Level: Read pairs with all junctions mapped correctly"),color="Mapping tool")+
+  labs(x="Correct pairs / mapped pairs",y="Correct pairs / all pairs",title=paste("Error rate:",error_rate,"Level: Read pairs with all junctions mapped correctly"),color="Mapping tool",shape="Mapping tool")+
   theme_bw()+
+  scale_colour_manual(values = col_vector)+
+  scale_shape_manual(values=1:nlevels(summary$mapper)) +
   theme(plot.title = element_text(size=13.5))
+g
+scale = 0.4
+ggsave(paste0("C:/Users/kerst/Desktop/MappingPlots/",type,"/read_pairs.png"),g,height = 9*scale,width=16*scale)
 ```
-```{r}
-ggplot(summary,aes(x=n_all_junctions_correct_pairs/n_proper_pairs,y=n_proper_pairs/n_pairs,color=mapper,shape=mapper))+
-  geom_point(size=3)+
-  labs(x="Correct pairs / mapped pairs",y="mapped pairs / all pairs",title=paste("Error rate:",error_rate,"Level: Read pairs with all junctions mapped correctly"),color="Mapping tool",shape="Mapping tool")+
-  scale_color_viridis(discrete = TRUE, option = "C")+
-  theme_bw()+
-  theme(plot.title = element_text(size=13.5))
-```
+
 
 Plotting level: junctions with correct range
 ```{r}
-ggplot(summary,aes(x=precision(n_correct_junctions,n_false_junctions),
+g <- ggplot(summary,aes(x=precision(n_correct_junctions,n_false_junctions),
                    y=recall(n_correct_junctions,n_junctions-n_correct_junctions),
-                   color=mapper))+
+                   color=mapper,shape=mapper))+
   geom_point(size=3)+
-  labs(x="Precision",y="Recall",title=paste("Error rate:",error_rate,"Level: Junctions with correct range"),color="Mapping tool")+
+  labs(x="Precision",y="Recall",title=paste("Error rate:",error_rate,"Level: Junctions with correct range"),color="Mapping tool",shape="Mapping tool")+
   theme_bw()+
+      scale_colour_manual(values = col_vector)+
+  scale_shape_manual(values=1:nlevels(summary$mapper)) +
   theme(plot.title = element_text(size=13.5))
+scale = 0.4
+g
+ggsave(paste0("C:/Users/kerst/Desktop/MappingPlots/",type,"/junctions.png"),g,height = 9*scale,width=16*scale)
 ```
-Make data long...
-```{r}
-summary_long <- melt(summary,id.vars = "mapper",variable.name = "type",value.name = "count")
-summary_long[,count:=as.integer(count)]
-```
-```{r}
-ggplot(summary_long,aes(x=type,y=count,fill=mapper))+
-  geom_bar(stat = "identity",position = "dodge")+
-  scale_color_viridis(discrete = TRUE, option = "D")+
-  scale_fill_viridis(discrete = TRUE, option = "D")+
-  theme_bw()+
-    theme(axis.text.x = element_text(angle = 90))
-```
-```{r}
-fractions_pairs<-data.table(mapper=summary$mapper)
-fractions_pairs[,unmapped:=summary$n_pairs-summary$n_proper_pairs]
-fractions_pairs[,"mapped correctly":=summary$n_all_junctions_correct_pairs]
-fractions_pairs[,"mapped incorrectly":=summary$n_proper_pairs-summary$n_all_junctions_correct_pairs]
-fractions_pairs <- melt(fractions_pairs,id.vars = "mapper", variable.name ="type",value.name = "count" )
-```
-```{r}
-ggplot(fractions_pairs,aes(x=mapper,y=count,fill=type))+
-  geom_bar(stat="identity")
-  
-```
+
 
